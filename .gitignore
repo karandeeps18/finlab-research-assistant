@@ -1,0 +1,28 @@
+# --- Secrets & Env Variables ---
+.env
+.env.shared
+*.env
+*.secret
+
+# --- Env & Dependency Managers ---
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Local Storage ---
+data/
+*.db
+*.sqlite3
+
+# --- IDEs & Sys Files ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
