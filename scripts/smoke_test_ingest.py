@@ -1,6 +1,3 @@
-"""End-to-end smoke test: ingest the latest 10-K for NVDA.
-"""
-
 import asyncio
 
 from finlab_research_assistant.core.logging import configure_logging, get_logger

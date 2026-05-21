@@ -1,7 +1,8 @@
 """High-level ingestion orchestration.
 
 Composes EdgarClient + CompanyResolver + FilingsIndex + RawStorage
-into a single 'ingest these tickers' interface.
+into a single 'ingest these tickers' interface, syncing both the
+raw filesystem layer and the metadata DB.
 """
 
 from __future__ import annotations
@@ -25,7 +26,6 @@ class Ingestor:
         index: FilingsIndex | None = None,
         storage: RawStorage | None = None,
     ) -> None:
-        # Dependency injection 
         self._resolver = resolver or CompanyResolver()
         self._index = index or FilingsIndex()
         self._storage = storage or RawStorage()
@@ -38,11 +38,9 @@ class Ingestor:
     ) -> tuple[Company, Filing] | None:
         """Ingest the latest filing of a given form type for a ticker.
 
-        Returns (company, filing) on success, None if no filing found.
-        Idempotent — skips download if filing is already on disk.
+        Idempotent — skips download if filing is already on disk,
+        but still syncs to DB so the catalog is always in sync.
         """
-        # If no client passed, create one. Otherwise reuse the caller's
-        # (so we can batch multiple ingestions sharing one connection pool).
         if client is None:
             async with EdgarClient() as new_client:
                 return await self._ingest_with_client(
@@ -59,34 +57,71 @@ class Ingestor:
         # Fetch filing history
         all_filings = await self._index.fetch_recent(company.cik, client)
 
-        # Find latest of requested form type
+        #  Find latest of requested form type
         filing = self._index.latest(all_filings, form_type=form_type)
         if filing is None:
-            log.warning(
-                "no_filing_found", ticker=ticker, form_type=form_type
-            )
+            log.warning("no_filing_found", ticker=ticker, form_type=form_type)
             return None
 
-        # Idempotency check; skip if already ingested
+        # Idempotency check; skip download but STILL sync to DB
         if self._storage.is_ingested(company, filing):
             log.info(
                 "filing.skipped_already_ingested",
                 ticker=ticker,
                 accession=filing.accession_number,
             )
+            await self._sync_to_db(company, filing)
             return company, filing
 
-        # Download the document
+        # Download
         url = filing.document_url(company.cik)
         log.info("filing.downloading", url=url)
         document_bytes = await client.get_bytes(url)
 
         # Write to raw layer
-        self._storage.write_filing(
+        target_dir = self._storage.write_filing(
             company=company,
             filing=filing,
             document_bytes=document_bytes,
             source_url=url,
         )
 
+        # Persist to DB
+        await self._sync_to_db(company, filing, raw_path=str(target_dir))
+
         return company, filing
+
+    async def _sync_to_db(
+        self,
+        company: Company,
+        filing: Filing,
+        raw_path: str | None = None,
+    ) -> None:
+        """Upsert company and filing into the metadata DB."""
+        from finlab_research_assistant.db.repository import (
+            upsert_company,
+            upsert_filing,
+        )
+        from finlab_research_assistant.db.session import get_session
+
+        log.info(
+            "db_sync.start",
+            ticker=company.ticker,
+            accession=filing.accession_number,
+        )
+
+        if raw_path is None:
+            raw_path = str(self._storage.filing_dir(company, filing))
+
+        try:
+            async with get_session() as session:
+                db_company = await upsert_company(session, company)
+                await upsert_filing(session, db_company, filing, raw_path)
+            log.info("db_sync.complete")
+        except Exception as e:
+            log.error(
+                "db_sync.failed",
+                error=str(e),
+                error_type=type(e).__name__,
+            )
+            raise

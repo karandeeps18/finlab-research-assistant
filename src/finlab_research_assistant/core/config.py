@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     )
     edgar_base_url: str = "https://www.sec.gov"
     edgar_data_url: str = "https://data.sec.gov"
-    edgar_max_requests_per_second: int = 9 
+    edgar_max_requests_per_second: int = 9
 
     # --- Embedding ---
     voyage_api_key: str | None = None  # add 
@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     raw_dir: Path = data_dir / "raw"
     processed_dir: Path = data_dir / "processed"
     chroma_dir: Path = data_dir / "chroma"
+    
+    # -- Database -- 
+    database_url: str = "sqlite+aiosqlite:///./data/finlab.db"
 
 
 # Module-level singleton
