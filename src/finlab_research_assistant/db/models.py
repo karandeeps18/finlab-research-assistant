@@ -71,6 +71,32 @@ class Filing(Base):
 
     # Reverse relationships
     company: Mapped[Company] = relationship(back_populates="filings")
+    chunks: Mapped[list["Chunk"]] = relationship(
+        back_populates="filing",
+        cascade="all, delete-orphan",)
 
     def __repr__(self) -> str:
         return f"<Filing {self.form_type} {self.accession_number}>"
+    
+class Chunk(Base):
+    __tablename__ = "chunks"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    filing_id: Mapped[int] = mapped_column(
+        ForeignKey("filings.id"), index=True
+    )
+
+    chunk_index: Mapped[int]
+    section_id: Mapped[str] = mapped_column(String(50), index=True)
+    section_label: Mapped[str] = mapped_column(String(50), index=True)
+    section_title: Mapped[str] = mapped_column(String(500))
+    text: Mapped[str]
+    char_start: Mapped[int]
+    char_end: Mapped[int]
+    token_count: Mapped[int]
+    priority: Mapped[float]
+
+    filing: Mapped["Filing"] = relationship(back_populates="chunks")
+
+    def __repr__(self) -> str:
+        return f"<Chunk #{self.chunk_index} {self.section_label}>"

@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from finlab_research_assistant.core.logging import get_logger
 from finlab_research_assistant.db.models import Company, Filing
 from finlab_research_assistant.ingestion.models import Company as CompanyDTO
 from finlab_research_assistant.ingestion.models import Filing as FilingDTO
+from finlab_research_assistant.db.models import Chunk as ChunkORM
+
 
 log = get_logger(__name__)
 
@@ -65,3 +67,39 @@ async def upsert_filing(
         log.debug("filing.exists", accession=dto.accession_number)
 
     return filing
+
+async def persist_chunks(
+    session: AsyncSession,
+    filing: Filing,
+    chunks: list,  # list[Chunk DTO from chunking module]
+) -> int:
+    """Persist chunks to DB. Idempotent — deletes prior chunks for this
+    filing first so reprocessing replaces cleanly."""
+    # Clear any existing chunks for this filing
+    await session.execute(
+        delete(ChunkORM).where(ChunkORM.filing_id == filing.id)
+    )
+
+    orm_chunks = [
+        ChunkORM(
+            filing_id=filing.id,
+            chunk_index=c.chunk_index,
+            section_id=c.section_id,
+            section_label=c.section_label,
+            section_title=c.section_title,
+            text=c.text,
+            char_start=c.char_start,
+            char_end=c.char_end,
+            token_count=c.token_count,
+            priority=c.priority,
+        )
+        for c in chunks
+    ]
+    session.add_all(orm_chunks)
+    await session.flush()
+    log.info(
+        "chunks.persisted",
+        filing_id=filing.id,
+        count=len(orm_chunks),
+    )
+    return len(orm_chunks)
