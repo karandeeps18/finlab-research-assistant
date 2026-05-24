@@ -11,7 +11,7 @@ log = get_logger(__name__)
 
 
 def main() -> None:
-    # Find the NVDA filing on disk
+    # Find the NVDA filing (disk)
     nvda_dir = next((settings.raw_dir / "NVDA").iterdir())
     html_path = nvda_dir / "filing.html"
 

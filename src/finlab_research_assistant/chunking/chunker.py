@@ -59,6 +59,11 @@ SECTION_TAXONOMY: dict[str, dict[str, Any]] = {
                 "label": "related_party"},
     "item_5":  {"include": True, "priority": 0.9, "chunk_size": 1000,
                 "label": "market_for_equity"},
+    
+    # 10-K physically place financial statements under item_15 (Exhibits and Financial Statement Schedules)
+    "item_15": {"include": True, "priority": 1.0, "chunk_size": 1200,
+            "label": "financials"},
+
 
     # Skip these — low signal for investment research
     "item_2":  {"include": False},   # Properties
@@ -66,7 +71,6 @@ SECTION_TAXONOMY: dict[str, dict[str, Any]] = {
     "item_4":  {"include": False},   # Mine Safety
     "item_9":  {"include": False},   # Changes in Accountants
     "item_9c": {"include": False},   # Foreign Jurisdictions
-    "item_15": {"include": False},   # Exhibits
 
     # Fallback for unknown / new sections
     "_default": {"include": True, "priority": 1.0, "chunk_size": 1000,
@@ -88,10 +92,10 @@ class Chunk(BaseModel):
     section_title: str         # full human title
 
     # Content
-    text: str
-    char_start: int
-    char_end: int
-    token_count: int
+    text: str                 # the original text
+    char_start: int           # character start 
+    char_end: int             # character end for provenance
+    token_count: int          # count of tokens used
 
     # Retrieval hint
     priority: float            # boost factor for ranking
@@ -221,7 +225,20 @@ class SectionAwareChunker:
         local_start: int,
         local_end: int,
     ) -> Chunk:
-        """Construct a Chunk DTO with full provenance."""
+        """Construct a Chunk DTO with section-title prefix for contextual retrieval.
+
+        The title prefix is the cheap version of Anthropic's contextual retrieval:
+        every chunk's embedding now reflects both its specific content AND its
+        section role. Risk Factors chunks cluster together in vector space;
+        queries about 'risks' retrieve all of them, not just ones that happen
+        to contain the word 'risk' in their slice of the text.
+
+        Cost: around 25-40 extra chars per chunk, negligible.
+        Benefit: measurably better retrieval for section-themed queries
+        """
+        # Prefix the section title, every chunk now carries its topical anchor
+        text_with_context = f"[{section.title}]\n\n{text}"
+
         return Chunk(
             chunk_index=chunk_index,
             accession_number=parsed.accession_number,
@@ -229,9 +246,9 @@ class SectionAwareChunker:
             section_id=section.section_id,
             section_label=label,
             section_title=section.title,
-            text=text,
+            text=text_with_context,
             char_start=section.char_start + local_start,
             char_end=section.char_start + local_end,
-            token_count=len(text) // 4,
+            token_count=len(text_with_context) // 4,
             priority=priority,
         )

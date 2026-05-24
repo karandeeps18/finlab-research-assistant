@@ -1,7 +1,7 @@
 """End-to-end smoke test with DB persistence.
 
-Initializes the database, runs ingestion (which now also writes metadata
-to the DB), then queries the DB to confirm everything is wired correctly.
+Initializes the database, runs ingestion also writes metadata
+to the DB, then queries the DB to confirm everything is wired correctly.
 """
 
 import asyncio
