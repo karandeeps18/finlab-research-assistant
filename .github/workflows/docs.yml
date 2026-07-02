@@ -1,11 +1,13 @@
 name: docs
 
-# Build the MkDocs site on every push/PR; deploy to GitHub Pages only from master.
+# Build and publish the documentation site to GitHub Pages.
+# Deploys ONLY from the default branch (master) or a manual run. Pull-request
+# validation lives in docs-ci.yml and never touches the github-pages environment,
+# so PR refs cannot be rejected by the environment's branch-protection rule.
 on:
   push:
     branches: [master]
-  pull_request:
-    branches: [master]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -30,14 +32,11 @@ jobs:
       - name: Build site (strict)
         run: mkdocs build --strict
       - name: Upload Pages artifact
-        if: github.ref == 'refs/heads/master'
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
 
   deploy:
-    # Publish to prod only when changes land on master.
-    if: github.ref == 'refs/heads/master'
     needs: build
     runs-on: ubuntu-latest
     environment:

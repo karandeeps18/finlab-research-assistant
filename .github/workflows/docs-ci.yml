@@ -1,0 +1,24 @@
+name: docs-ci
+
+# Validate the documentation build on pull requests targeting master.
+# Build-only: no Pages permissions and no github-pages environment, so pull
+# requests never attempt a deployment (that happens only in docs.yml on master).
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install docs dependencies
+        run: pip install -r docs/requirements.txt
+      - name: Build site (strict)
+        run: mkdocs build --strict
