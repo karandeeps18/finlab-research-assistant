@@ -46,7 +46,7 @@ settings = Settings()  # module-level singleton
 ```bash title=".env"
 ANTHROPIC_API_KEY=sk-ant-...
 EDGAR_USER_AGENT=Jane Doe jane@example.com
-VOYAGE_API_KEY=pa-...            # optional until the Voyage provider lands
+VOYAGE_API_KEY=pa-...            # optional until the Voyage provider is implemented
 # DATABASE_URL=sqlite+aiosqlite:///./data/finlab.db
 ```
 
@@ -55,7 +55,7 @@ VOYAGE_API_KEY=pa-...            # optional until the Voyage provider lands
 `configure_logging(level)` sets up `structlog` for structured, machine-readable events;
 `get_logger(__name__)` returns a bound logger. Every module logs typed events
 (`filing.written`, `parser.section_filter`, `chunks.persisted`, …) rather than free text,
-which makes runs greppable and inspectable.
+which makes runs machine-inspectable.
 
 ## Dependencies
 

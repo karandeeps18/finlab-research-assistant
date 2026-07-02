@@ -3,9 +3,9 @@
 **Status:** :material-check: Implemented (Pass 2 disabled) · **File:** `parsing/parser.py`
 
 `FilingParser.parse()` converts raw 10-K HTML into a `ParsedFiling` — a list of named
-`ParsedSection`s plus the full extracted text. The hard part is not extracting text; it is
-telling a **real section header** apart from the dozens of decoy "Item N" strings that
-appear in the table of contents, cross-references, and exhibit indexes.
+`ParsedSection`s plus the full extracted text. The principal challenge is not text
+extraction but distinguishing a genuine section header from the many "Item N" strings that
+also appear in the table of contents, cross-references, and exhibit indexes.
 
 ## Flow
 
@@ -64,8 +64,8 @@ treating all raw matches as real rather than returning nothing. If there are no 
 all, it returns a single `full_document` section.
 
 After slicing, sections shorter than 200 chars are dropped, and duplicates of the same
-`section_id` are collapsed keeping the **largest** occurrence (the real body beats a
-stray reference). The result is sorted by character position.
+`section_id` are collapsed by retaining the **largest** occurrence (the substantive body
+rather than a stray reference). The result is sorted by character position.
 
 ## Output models — `parsing/models.py`
 

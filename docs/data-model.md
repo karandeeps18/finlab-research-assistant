@@ -94,7 +94,7 @@ The indexes on `filing_date`, `form_type`, `section_id`, and `section_label` are
 for the queries the system needs: temporal range scans, form filtering, and
 retrieval-time section pre-filtering.
 
-## Session & lifecycle — `db/session.py`
+## Session and lifecycle — `db/session.py`
 
 ```python
 engine = create_async_engine(settings.database_url, echo=False, future=True)

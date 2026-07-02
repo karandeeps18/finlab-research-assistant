@@ -55,7 +55,8 @@ flowchart TB
     GEN -.-> API
 ```
 
-Solid arrows are wired in code; dashed arrows are designed-for but not yet connected.
+Solid arrows denote data flows implemented in code; dashed arrows denote planned
+connections that are not yet implemented.
 
 ## Module map
 
@@ -94,7 +95,7 @@ src/finlab_research_assistant/
     `Ingestor` class verbatim. Only `ingestion/ingestor.py` is imported by the smoke
     tests. The duplicate should be removed — tracked in the [Roadmap](roadmap.md).
 
-## Design principles in force
+## Design principles
 
 - **Typed boundaries.** Raw EDGAR JSON is parsed into Pydantic DTOs
   (`ingestion/models.py`) at the HTTP boundary; downstream code only sees typed objects.

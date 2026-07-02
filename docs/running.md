@@ -34,8 +34,8 @@ cp .env.example .env   # if present; otherwise create .env
 
 ## The end-to-end path
 
-`scripts/smoke_test_chunk.py` is the closest thing to a full run and shows how the stages
-are wired together by hand:
+`scripts/smoke_test_chunk.py` is the most complete single run and demonstrates how the
+stages are composed:
 
 ```python
 # 1. schema

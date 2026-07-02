@@ -2,10 +2,10 @@
 
 **Status:** :material-progress-helper: Partial · **Package:** `embedding/`
 
-The embedding layer converts chunks into vectors. What exists today is the **typed
-contract and the batching logic** plus a deterministic fake provider for testing. The real
-Voyage provider, the orchestrating `Embedder`, and the write-to-vector-store step are not
-yet implemented.
+The embedding layer converts chunks into vectors. The implemented surface comprises the
+typed contracts and the batching logic, together with a deterministic fake provider used
+for testing. The production Voyage provider, the `Embedder` orchestrator, and the
+vector-store write path are not yet implemented.
 
 | Piece | File | Status |
 |-------|------|--------|
@@ -56,16 +56,18 @@ class EmbeddingProvider(Protocol):
 
 Design points:
 
-- **`Protocol`, not a base class.** Any object with a matching async `embed` satisfies the
-  interface — no inheritance required, and test doubles are trivial.
-- **`document` vs `query` input types.** Asymmetric embedding: documents and queries can be
-  encoded differently, which finance embedding models (e.g. `voyage-finance-2`) support.
+- **`Protocol`, not a base class.** Any object exposing a matching asynchronous `embed`
+  method satisfies the interface; no inheritance is required, which simplifies providing
+  test implementations.
+- **`document` vs `query` input types.** Embedding is asymmetric: documents and queries may
+  be encoded differently, a distinction that finance embedding models such as
+  `voyage-finance-2` support.
 - **Frozen dataclasses.** `BatchLimits` and `BatchItem` are immutable and validated at
-  construction — invalid limits fail loudly at startup.
+  construction, so invalid limits are rejected at startup.
 
 ## Batching algorithm — `batcher.py`
 
-Two functions, split so validation is separated from iteration:
+The logic is split into two functions so that validation is separated from iteration:
 
 ```python
 def validate_items(items, limits) -> None:
@@ -97,7 +99,7 @@ token limit, fail-fast, empty input, order preservation).
 
 ## FakeProvider — `providers.py`
 
-A deterministic stand-in used to exercise the pipeline without network calls:
+A deterministic implementation used to exercise the pipeline without network access:
 
 ```python
 class FakeProvider(EmbeddingProvider):
@@ -106,12 +108,12 @@ class FakeProvider(EmbeddingProvider):
         # shake_256(f"{input_type}:{text}") → dim hex bytes → floats in [0, 1]
 ```
 
-It is **deterministic** (same input → same vector), **asymmetric** (the `input_type` is
-folded into the hash, so document and query embeddings of the same text differ), and shaped
-correctly (`list[list[float]]`, `dim` floats each). Validated by
-`scripts/smoke_test_fake_embed.py`.
+It is deterministic (identical input yields an identical vector), asymmetric (the
+`input_type` is folded into the hash, so the document and query embeddings of the same
+text differ), and returns correctly shaped output (`list[list[float]]`, `dim` floats per
+text). Validated by `scripts/smoke_test_fake_embed.py`.
 
-## What's missing
+## Not yet implemented
 
 - **Voyage provider.** `settings.embedding_model` defaults to `voyage-finance-2` and
   `voyage_api_key` is read from the environment, but no `VoyageProvider` implements the
@@ -122,4 +124,4 @@ correctly (`list[list[float]]`, `dim` floats each). Validated by
 - **Vector store.** `chromadb` is a dependency and `settings.chroma_dir` is configured,
   but nothing writes to or reads from it yet.
 
-These are the first items on the [Roadmap](../roadmap.md).
+These items are prioritized in the [Roadmap](../roadmap.md).

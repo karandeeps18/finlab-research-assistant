@@ -5,13 +5,7 @@ into a structured, queryable corpus for investment research. It downloads filing
 parses them into named sections, splits those sections into retrieval-ready chunks with
 provenance, and (in progress) embeds those chunks into vectors.
 
-This documentation describes the system **as it exists in the code today**, including
-components that are implemented, partial, or still stubs. It is a technical reference,
-not a marketing document. For the product/vision framing, see the separate
-[pitch document](https://github.com/karandeeps18/finlab-research-assistant/blob/master/docs/PITCH.md)
-on the `feat/embedding` branch.
-
-## What it does today
+## Functional overview
 
 1. **Ingest** — resolve a ticker to a CIK, fetch its filing history from EDGAR, download
    the latest 10-K, and store it immutably on disk with provenance metadata.
@@ -22,10 +16,10 @@ on the `feat/embedding` branch.
 4. **Catalog** — persist companies, filings, and chunks into a SQLite metadata database
    via an async SQLAlchemy layer.
 
-Embedding, retrieval, generation, and evaluation are **partially built or scaffolded** —
-see [Current State](current-state.md).
+Embedding, retrieval, generation, and evaluation are **partially implemented or
+scaffolded**; see [Current State](current-state.md).
 
-## Component status at a glance
+## Component status
 
 | Area | Module | Status |
 |------|--------|--------|
@@ -49,7 +43,7 @@ see [Current State](current-state.md).
 - [Running It](running.md) — how to execute each stage via the `scripts/` smoke tests.
 - [Roadmap](roadmap.md) — prioritized next steps.
 
-## Tech stack
+## Technology stack
 
 Python ≥ 3.11, `httpx` + `tenacity` (EDGAR I/O), `unstructured` (HTML parsing),
 `pydantic` / `pydantic-settings` (typed boundaries + config), SQLAlchemy 2.0 async +

@@ -3,7 +3,7 @@
 Prioritized from the gaps in [Current State](current-state.md). Ordered so each stage
 unblocks the next; nothing here is implemented yet.
 
-## 1. Close the embedding loop
+## 1. Complete the embedding path
 
 - Implement `VoyageProvider(EmbeddingProvider)` in `providers.py` using `voyageai` and
   `settings.embedding_model` (`voyage-finance-2`), honoring the `document`/`query`
@@ -11,7 +11,7 @@ unblocks the next; nothing here is implemented yet.
 - Implement the `Embedder` orchestrator (`embedder.py`): chunks → `BatchItem`s →
   `validate_items` → `batch_items` → `provider.embed` → persist vectors. Add async retry /
   rate limiting around provider calls.
-- Wire the **Chroma** vector store (`settings.chroma_dir`): write vectors keyed by
+- Integrate the **Chroma** vector store (`settings.chroma_dir`): write vectors keyed by
   `accession#chunk_index` with `section_label` / `priority` / char-span metadata for
   filtering and citation.
 
@@ -67,9 +67,9 @@ ask endpoints.
 
 ## Target architecture (planned)
 
-Where the pieces above lead — a temporally-aware, citation-grounded retrieval substrate
-that a human analyst and an automated agent query the same way. **This is a design target,
-not current behavior.**
+The direction the items above lead toward: a temporally aware, citation-grounded retrieval
+substrate that a human analyst and an automated agent query in the same way. **This is a
+design target, not current behavior.**
 
 ```mermaid
 flowchart LR

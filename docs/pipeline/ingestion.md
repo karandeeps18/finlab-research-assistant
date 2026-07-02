@@ -2,8 +2,9 @@
 
 **Status:** :material-check: Implemented · **Package:** `ingestion/`
 
-Ingestion turns a ticker symbol into a downloaded 10-K plus catalog rows. It composes four
-single-responsibility components behind one orchestrator, `Ingestor`.
+Ingestion converts a ticker symbol into a downloaded 10-K and its corresponding catalog
+rows. It composes four single-responsibility components behind one orchestrator,
+`Ingestor`.
 
 ## End-to-end sequence
 
@@ -50,8 +51,8 @@ connection pool is always closed cleanly.
   `settings.edgar_user_agent`).
 - **Client-side rate limiting.** An `asyncio.Semaphore(max_concurrent)` caps in-flight
   requests. Default is `settings.edgar_max_requests_per_second = 9`, staying under SEC's
-  ~10 req/s ceiling. (Note: the knob currently bounds *concurrency*, not a strict
-  requests-per-second rate.)
+  ~10 req/s ceiling. (The setting currently bounds *concurrency* rather than enforcing a
+  strict requests-per-second rate.)
 - **Retries.** `_request_with_retry` is wrapped with `tenacity`: up to 3 attempts on
   `httpx.RequestError` / `httpx.HTTPStatusError`, exponential backoff (1→10s),
   `reraise=True`.
@@ -79,7 +80,7 @@ Fetches a company's recent submissions from
 
 !!! info "Scope today"
     Only the `filings.recent` block is read. Older filings paginated into separate
-    `filings.files[*]` JSON blobs are not yet followed — recent history only.
+    `filings.files[*]` JSON documents are not yet followed; only recent history is read.
 
 ### RawStorage — `ingestion/storage.py`
 
