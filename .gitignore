@@ -26,3 +26,6 @@ data/
 .idea/
 .DS_Store
 Thumbs.db
+
+# --- Docs site build output (mkdocs) ---
+site/
