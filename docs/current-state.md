@@ -1,9 +1,9 @@
 # Current State
 
-A candid snapshot of what is built, what is partial, and what is a placeholder — so the
-[Roadmap](roadmap.md) has an honest starting point.
+A precise account of what is implemented, what is partial, and what remains a placeholder.
+It establishes the baseline for the [Roadmap](roadmap.md).
 
-## Working end to end
+## Implemented
 
 - **Ingestion** (`ingestion/`): ticker resolution, filing-history fetch, rate-limited
   retrying downloads, immutable raw storage with provenance, idempotent re-runs, and
@@ -36,7 +36,7 @@ A candid snapshot of what is built, what is partial, and what is a placeholder �
 - **Vector store** — `chromadb` installed and `chroma_dir` configured, but nothing reads
   or writes it.
 
-## Known issues / cleanups
+## Known issues and cleanups
 
 - **Duplicate `Ingestor`.** `ingestion/ingestor.py` and `db/ingestor.py` are identical;
   only the former is used.

@@ -2,10 +2,10 @@
 
 **Status:** :material-check: Implemented · **File:** `chunking/chunker.py`
 
-`SectionAwareChunker.chunk_filing()` turns a `ParsedFiling` into a list of `Chunk`s. Unlike
-a naive fixed-size splitter, it is **section-aware**: a whitelist decides *which* sections
-are worth indexing, and each section gets a chunk size and retrieval priority chosen for
-its role in investment research.
+`SectionAwareChunker.chunk_filing()` converts a `ParsedFiling` into a list of `Chunk`s.
+Unlike a fixed-size splitter, it is **section-aware**: a whitelist determines which
+sections are indexed, and each section is assigned a chunk size and retrieval priority
+appropriate to its role in investment research.
 
 ## Flow
 

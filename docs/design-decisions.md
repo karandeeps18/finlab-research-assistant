@@ -12,15 +12,17 @@ priorities). The comment in `chunker.py` is explicit about the trade-off:
 > years). A learned classifier on past filings would be more robust at scale. We stay
 > rule-based for clarity and auditability.
 
-**Why:** at this stage, a transparent, debuggable rule set beats an opaque model. Every
-decision ("why was Item 4 dropped?") is answerable by reading a dict. **Cost:** brittle
-across unusual filers; new/renamed items fall to `_default`.
+**Why:** at this stage, a transparent, auditable rule set is preferable to an opaque model;
+every decision (for example, why Item 4 is excluded) is answerable by reading a dictionary.
+**Cost:** brittleness across unusual filers; new or renamed items fall through to
+`_default`.
 
 ## Structural filters over smarter dedup in the parser
 
-Naive "every `Item N` match is a section" yields 60+ candidates per filing. Rather than
-patch this with cleverer de-duplication, the parser rejects non-headers using **structural
-signals** (dot-leaders + page numbers, cross-reference proximity, minimum content length).
+A naive rule that treats every `Item N` match as a section yields 60+ candidates per
+filing. Rather than address this with more elaborate de-duplication, the parser rejects
+non-headers using **structural signals** (dot-leaders and page numbers, cross-reference
+proximity, minimum content length).
 
 **Why:** structural signals generalize across issuers (NVDA, AAPL, older industrials);
 issuer-specific dedup does not. **Cost:** the filters are heuristics with a safety fallback
@@ -47,21 +49,21 @@ completion-marker scheme is coarse (file-level, not checksum-verified).
 
 ## `Protocol` over ABC for the embedding provider
 
-`EmbeddingProvider` is a `typing.Protocol`. Any object with a matching async `embed`
-conforms — no inheritance.
+`EmbeddingProvider` is a `typing.Protocol`. Any object exposing a matching asynchronous
+`embed` method conforms, without inheritance.
 
 **Why:** structural typing keeps providers decoupled and makes the deterministic
-`FakeProvider` trivial to write for tests. **Cost:** conformance is checked structurally,
-not enforced by a base class at definition time.
+`FakeProvider` straightforward to implement for tests. **Cost:** conformance is checked
+structurally, not enforced by a base class at definition time.
 
 ## Validate-then-batch (fail-fast) in embedding
 
 `validate_items` scans for any oversized item and raises **before** `batch_items` yields
 anything.
 
-**Why:** guarantees that if validation passes, every produced batch is valid — no partial
-progress where a late item blows the per-item limit mid-stream. **Cost:** one extra linear
-pass over items.
+**Why:** this guarantees that if validation passes, every produced batch is valid, with no
+partial progress in which a later item exceeds the per-item limit mid-stream. **Cost:** one
+additional linear pass over the items.
 
 ## Separate Pydantic DTOs and SQLAlchemy ORM
 
