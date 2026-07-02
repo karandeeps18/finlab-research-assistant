@@ -17,7 +17,7 @@ every decision (for example, why Item 4 is excluded) is answerable by reading a 
 **Cost:** brittleness across unusual filers; new or renamed items fall through to
 `_default`.
 
-## Structural filters over smarter dedup in the parser
+## Structural filters over more elaborate de-duplication in the parser
 
 A naive rule that treats every `Item N` match as a section yields 60+ candidates per
 filing. Rather than address this with more elaborate de-duplication, the parser rejects
@@ -70,8 +70,8 @@ additional linear pass over the items.
 EDGAR JSON is parsed into Pydantic models at the HTTP boundary (`ingestion/models.py`);
 persistence uses distinct ORM classes (`db/models.py`); mapping happens in the repository.
 
-**Why:** a schema change at the EDGAR boundary breaks in exactly one place, loudly, and the
-persistence layer can evolve independently. **Cost:** two parallel model definitions and an
+**Why:** a schema change at the EDGAR boundary surfaces at a single, well-defined point,
+and the persistence layer can evolve independently. **Cost:** two parallel model definitions and an
 explicit mapping step.
 
 ## Character-based token approximation
